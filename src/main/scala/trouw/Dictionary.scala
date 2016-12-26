@@ -1,13 +1,14 @@
 package trouw
 
 import scala.annotation.tailrec
+import scala.collection.immutable.Iterable
 import scala.io.Source
 
 /**
   * Created by Tom Lous on 26/12/16.
   * Copyright © 2016 Datlinq B.V..
   */
-case class Dictionary(words:Iterator[String]) {
+case class Dictionary(words:List[String]) {
 
 //  lazy val filteredWordSets = (charArr:Array[Char]) => {
 //
@@ -18,9 +19,32 @@ case class Dictionary(words:Iterator[String]) {
 //    })
 //  }
 
+  def checkAll(charList:List[Char]):Map[String, List[Char]] = {
+    words.map(word => Dictionary.checkWord(word,charList))
+      .filter(_._1.isDefined)
+      .map(t => t._1.get ->  t._2).toMap
+  }
 
 
+  def checkAllRecursive(charList:List[Char]):List[List[String]] = {
 
+
+    def rec(charList:List[Char], words: List[String]):List[List[String]] = charList match {
+      case Nil => List(words)
+      case _ => {
+        val options: Map[String, List[Char]] = checkAll(charList)
+        if (options.size == 0) Nil
+        else {
+          options.flatMap {
+            case (word, remainingCharsList) => rec(remainingCharsList, word :: words)
+          }.toList
+        }
+      }
+
+    }
+
+    rec(charList, Nil)
+  }
 
 
 
@@ -35,15 +59,16 @@ object Dictionary{
     new Dictionary(words)
   }
 
-  private def loadDict(fileName:String):Iterator[String] = {
+  private def loadDict(fileName:String):List[String] = {
     val resource = getClass.getResource(fileName)
 
     Source
       .fromURL(resource)
       .getLines()
+      .toList
   }
 
-  def checkWord(word:String, charArr:List[Char]):(Boolean, List[Char])  = {
+  def checkWord(word:String, charArr:List[Char]):(Option[String], List[Char])  = {
     val wordArr = word.toCharArray.toList
 
     @tailrec
@@ -60,8 +85,8 @@ object Dictionary{
 
     val (found, remaining) =  checkChars(wordArr, charArr)
 
-    if(found) (true, remaining)
-    else (false, charArr)
+    if(found) (Some(word), remaining)
+    else (None,  charArr)
   }
 
 }
