@@ -9,19 +9,10 @@ import scala.io.{BufferedSource, Source}
 object CitatenPuzzelSolver {
 
   def main(args: Array[String]): Unit = {
-    val nlWords = loadDict("nldict.txt")
+    val nlDict = Dictionary("/nldict.txt")
 
-    println(nlWords.toList)
+    println(nlDict.words.toList)
   }
 
-  def loadDict(fileName:String):Iterator[String] = {
-    Source
-      .fromURL(
-        getClass
-          .getClassLoader
-          .getResource(fileName)
-      )
-      .getLines()
-  }
 
 }
